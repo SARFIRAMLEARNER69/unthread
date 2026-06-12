@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Checkout -  UniThread</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.gstatic.com" rel="preconnect" crossorigin/>
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+<script>WebFont.load({google:{families:["Instrument Sans:regular,500,600,700","Anton:regular"]}});</script>
+<link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0d0d;color:#fff;font-family:'Instrument Sans',sans-serif;min-height:100vh;}
+
+/* ── NAVBAR ── */
+.nav{position:sticky;top:0;z-index:100;background:#0d0d0d;border-bottom:1px solid #1a1a1a;padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;}
+.nav-brand{font-family:'Anton',sans-serif;font-size:1.4rem;letter-spacing:.05em;color:#fff;text-decoration:none;}
+.nav-links{display:flex;gap:28px;list-style:none;}
+.nav-links a{color:#aaa;text-decoration:none;font-size:.9rem;transition:color .2s;}
+.nav-links a:hover{color:#fff;}
+.nav-right{display:flex;align-items:center;gap:16px;}
+.cart-back{color:#aaa;text-decoration:none;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:color .2s;}
+.cart-back:hover{color:#fff;}
+
+/* ── PAGE ── */
+.page{max-width:1100px;margin:0 auto;padding:48px 24px 100px;}
+.page-title{margin-bottom:40px;}
+.page-title h1{font-family:'Anton',sans-serif;font-size:2.5rem;letter-spacing:.02em;}
+.page-title p{color:#555;font-size:.9rem;margin-top:6px;}
+
+/* ── LAYOUT ── */
+.checkout-grid{display:grid;grid-template-columns:1fr 400px;gap:40px;align-items:start;}
+@media(max-width:860px){.checkout-grid{grid-template-columns:1fr;}.summary-col{order:-1;}}
+
+/* ── FORM ── */
+.form-col{}
+.section-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#555;
+  margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid #1e1e1e;}
+.form-section{margin-bottom:32px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:500px){.form-row{grid-template-columns:1fr;}}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.form-group label{font-size:.74rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#666;}
+.form-group input,.form-group select{
+  background:#141414;border:1px solid #222;color:#fff;
+  padding:12px 14px;border-radius:6px;font-size:.95rem;font-family:inherit;
+  transition:border-color .2s;
+}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:#555;}
+.form-group input::placeholder{color:#444;}
+.form-group select option{background:#141414;}
+.form-group.full{grid-column:1/-1;}
+
+.val-error{color:#ff5c5c;font-size:.82rem;margin-bottom:12px;display:none;
+  background:#1a0808;border:1px solid #3a1010;border-radius:6px;padding:10px 14px;}
+
+/* ── PLACE ORDER BTN ── */
+.place-btn{
+  width:100%;padding:16px;background:#fff;color:#000;border:none;
+  border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;
+  letter-spacing:.04em;transition:background .2s,transform .1s;
+  font-family:'Instrument Sans',sans-serif;margin-top:8px;
+}
+.place-btn:hover{background:#e5e5e5;}
+.place-btn:active{transform:scale(.98);}
+.place-btn:disabled{background:#222;color:#555;cursor:not-allowed;}
+
+/* ── ORDER SUMMARY ── */
+.summary-col{}
+.summary-box{background:#141414;border:1px solid #1e1e1e;border-radius:12px;padding:24px;position:sticky;top:84px;}
+.summary-items{list-style:none;display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
+.s-item{display:flex;gap:12px;align-items:center;}
+.s-item img{width:54px;height:54px;object-fit:cover;border-radius:6px;background:#222;flex-shrink:0;}
+.s-item-info{flex:1;min-width:0;}
+.s-item-name{font-size:.88rem;font-weight:600;}
+.s-item-meta{font-size:.76rem;color:#666;margin-top:2px;}
+.s-item-price{font-size:.88rem;font-weight:700;white-space:nowrap;}
+.summary-divider{border:none;border-top:1px solid #1e1e1e;margin:16px 0;}
+.summary-row{display:flex;justify-content:space-between;font-size:.88rem;color:#777;margin-bottom:10px;}
+.summary-row.total{font-size:1.1rem;font-weight:700;color:#fff;margin-top:4px;}
+.empty-msg{text-align:center;color:#555;padding:24px 0;font-size:.88rem;}
+.empty-msg a{color:#fff;}
+
+/* ── LOADING OVERLAY ── */
+.submitting-overlay{
+  display:none;position:fixed;inset:0;background:rgba(13,13,13,.85);
+  z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+.submitting-overlay.show{display:flex;}
+.spinner{width:40px;height:40px;border:3px solid #333;border-top-color:#fff;
+  border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.submitting-overlay p{color:#aaa;font-size:.9rem;}
+
+@media(max-width:600px){
+  .nav{padding:0 20px;}
+  .nav-links{display:none;}
+  .page{padding:32px 16px 80px;}
+  .page-title h1{font-size:1.8rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="nav">
+  <a href="index.html" class="nav-brand">UniThread</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="shop.html">Shop</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="shop.html" class="cart-back">← Back to Shop</a>
+  </div>
+</nav>
+
+<!-- SUBMITTING OVERLAY -->
+<div class="submitting-overlay" id="submitting-overlay">
+  <div class="spinner"></div>
+  <p>Placing your order…</p>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+  <div class="page-title">
+    <h1>Checkout</h1>
+    <p>Fill in your details and confirm your order</p>
+  </div>
+
+  <div class="checkout-grid">
+
+    <!-- LEFT: FORM -->
+    <div class="form-col">
+
+      <!-- Contact -->
+      <div class="form-section">
+        <div class="section-title">Contact Information</div>
+        <div class="form-group">
+          <label for="f-name">Full Name *</label>
+          <input type="text" id="f-name" placeholder="e.g. Rahul Sharma" autocomplete="name"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="f-email">Email *</label>
+            <input type="email" id="f-email" placeholder="you@example.com" autocomplete="email"/>
+          </div>
+          <div class="form-group">
+            <label for="f-phone">Phone *</label>
+            <input type="tel" id="f-phone" placeholder="10-digit number" autocomplete="tel"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping -->
+      <div class="form-section">
+        <div class="section-title">Shipping Address</div>
+        <div class="form-group">
+          <label for="f-addr1">Address Line 1 *</label>
+          <input type="text" id="f-addr1" placeholder="House / Flat No., Street" autocomplete="address-line1"/>
+        </div>
+        <div class="form-group">
+          <label for="f-addr2">Address Line 2 <span style="color:#444;font-weight:400">(optional)</span></label>
+          <input type="text" id="f-addr2" placeholder="Landmark, Area" autocomplete="address-line2"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="f-city">City *</label>
+            <input type="text" id="f-city" placeholder="Pune" autocomplete="address-level2"/>
+          </div>
+          <div class="form-group">
+            <label for="f-state">State *</label>
+            <input type="text" id="f-state" placeholder="Maharashtra" autocomplete="address-level1"/>
+          </div>
+        </div>
+        <div class="form-group" style="max-width:180px;">
+          <label for="f-pin">PIN Code *</label>
+          <input type="text" id="f-pin" placeholder="411005" maxlength="6" autocomplete="postal-code"/>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div class="val-error" id="val-error"></div>
+
+      <!-- Submit -->
+      <button class="place-btn" id="place-btn" onclick="placeOrder()">Confirm Order (No Payment)</button>
+      <p style="color:#444;font-size:.78rem;margin-top:12px;line-height:1.5;">
+        This is a test phase — no payment required. Your order will be logged and you'll receive a confirmation email.
+      </p>
+    </div>
+
+    <!-- RIGHT: SUMMARY -->
+    <div class="summary-col">
+      <div class="summary-box">
+        <div class="section-title" style="margin-bottom:18px;">Order Summary</div>
+        <ul class="summary-items" id="summary-items"></ul>
+        <hr class="summary-divider"/>
+        <div class="summary-row"><span>Subtotal</span><span id="summary-subtotal">₹0</span></div>
+        <div class="summary-row"><span>Shipping</span><span style="color:#4ade80;">Free</span></div>
+        <hr class="summary-divider"/>
+        <div class="summary-row total"><span>Total</span><span id="summary-total">₹0</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTrsPzXnuaKN-eUPeElPCrIw9eY4s8gWxvzfAwhKjdOiSNyv0mqLueuugtrj0n1vOWYQ/exec';
+
+// ── LOAD CART from same localStorage key as shop.html ──
+var cart = [];
+try { cart = JSON.parse(localStorage.getItem('coep_cart')) || []; } catch(e) {}
+
+// ── RENDER ORDER SUMMARY ──
+function renderSummary() {
+  var list       = document.getElementById('summary-items');
+  var subtotalEl = document.getElementById('summary-subtotal');
+  var totalEl    = document.getElementById('summary-total');
+  var btn        = document.getElementById('place-btn');
+
+  if (!cart.length) {
+    list.innerHTML = '<li class="empty-msg">Your cart is empty. <a href="shop.html">Go to Shop →</a></li>';
+    if (btn) btn.disabled = true;
+    if (subtotalEl) subtotalEl.textContent = '₹0';
+    if (totalEl)    totalEl.textContent    = '₹0';
+    return;
+  }
+
+  var total = cart.reduce(function(s, i){ return s + i.price * i.qty; }, 0);
+
+  list.innerHTML = cart.map(function(item) {
+    return '<li class="s-item">' +
+      '<img src="' + item.img + '" alt="' + item.name + '" onerror="this.style.opacity=\'0\'">' +
+      '<div class="s-item-info">' +
+        '<div class="s-item-name">' + item.name + '</div>' +
+        '<div class="s-item-meta">Size: ' + item.size + ' &nbsp;·&nbsp; Qty: ' + item.qty + '</div>' +
+      '</div>' +
+      '<div class="s-item-price">₹' + (item.price * item.qty).toLocaleString('en-IN') + '</div>' +
+    '</li>';
+  }).join('');
+
+  if (subtotalEl) subtotalEl.textContent = '₹' + total.toLocaleString('en-IN');
+  if (totalEl)    totalEl.textContent    = '₹' + total.toLocaleString('en-IN');
+}
+
+// ── VALIDATION ──
+function validate() {
+  var name  = document.getElementById('f-name').value.trim();
+  var email = document.getElementById('f-email').value.trim();
+  var phone = document.getElementById('f-phone').value.trim().replace(/\s+/g,'');
+  var addr1 = document.getElementById('f-addr1').value.trim();
+  var city  = document.getElementById('f-city').value.trim();
+  var state = document.getElementById('f-state').value.trim();
+  var pin   = document.getElementById('f-pin').value.trim();
+
+  if (!name)  return 'Please enter your full name.';
+  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) return 'Please enter a valid email address.';
+  if (!phone || !/^[+]?[0-9]{10,13}$/.test(phone))   return 'Please enter a valid 10-digit phone number.';
+  if (!addr1) return 'Please enter your address.';
+  if (!city)  return 'Please enter your city.';
+  if (!state) return 'Please enter your state.';
+  if (!pin || !/^[0-9]{6}$/.test(pin)) return 'Please enter a valid 6-digit PIN code.';
+  return null; // all good
+}
+
+// ── PLACE ORDER ──
+function placeOrder() {
+  if (!cart.length) {
+    showError('Your cart is empty! Go back to the shop and add items.');
+    return;
+  }
+
+  var errMsg = validate();
+  if (errMsg) {
+    showError(errMsg);
+    return;
+  }
+  hideError();
+
+  var btn = document.getElementById('place-btn');
+  btn.disabled = true;
+  document.getElementById('submitting-overlay').classList.add('show');
+
+  var name  = document.getElementById('f-name').value.trim();
+  var email = document.getElementById('f-email').value.trim();
+  var phone = document.getElementById('f-phone').value.trim().replace(/\s+/g,'');
+  var addr2 = document.getElementById('f-addr2').value.trim();
+  var addr  = [
+    document.getElementById('f-addr1').value.trim(),
+    addr2,
+    document.getElementById('f-city').value.trim(),
+    document.getElementById('f-state').value.trim(),
+    document.getElementById('f-pin').value.trim(),
+    'India'
+  ].filter(Boolean).join(', ');
+
+  var total     = cart.reduce(function(s, i){ return s + i.price * i.qty; }, 0);
+  var itemsText = cart.map(function(i){ return i.name + ' x' + i.qty + ' [' + i.size + ']'; }).join(' | ');
+  var orderId   = 'COEP-' + Date.now().toString().slice(-8);
+
+  var orderData = {
+    order_id:  orderId,
+    name:      name,
+    email:     email,
+    phone:     phone,
+    address:   addr,
+    items:     itemsText,
+    amount:    total,
+    timestamp: new Date().toISOString()
+  };
+
+  // Save full order (with cart items array) for the success page
+  try {
+    localStorage.setItem('coep_last_order', JSON.stringify({
+      order_id:  orderId,
+      name:      name,
+      email:     email,
+      phone:     phone,
+      address:   addr,
+      items:     cart,
+      total:     total,
+      timestamp: new Date().toISOString()
+    }));
+  } catch(e) {}
+
+  // Fire-and-forget to Google Apps Script
+  if (APPS_SCRIPT_URL) {
+    fetch(APPS_SCRIPT_URL, {
+      method:  'POST',
+      mode:    'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(orderData)
+    }).catch(function(e){ console.warn('Apps Script error:', e); });
+  }
+
+  // Clear cart
+  try { localStorage.removeItem('coep_cart'); } catch(e) {}
+
+  // Small delay so spinner is visible, then redirect
+  setTimeout(function() {
+    window.location.href = 'order-success.html?oid=' + orderId;
+  }, 800);
+}
+
+function showError(msg) {
+  var el = document.getElementById('val-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function hideError() {
+  document.getElementById('val-error').style.display = 'none';
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', renderSummary);
+</script>
+</body>
+</html>

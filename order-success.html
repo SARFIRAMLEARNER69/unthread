@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Order Confirmed! - coep Merch</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.gstatic.com" rel="preconnect" crossorigin/>
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+<script>WebFont.load({google:{families:["Instrument Sans:regular,500,600,700","Anton:regular"]}});</script>
+<link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0d0d;color:#fff;font-family:'Instrument Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+
+.snav{padding:20px 40px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;}
+.snav .brand{font-family:'Anton',sans-serif;font-size:1.4rem;letter-spacing:.05em;color:#fff;text-decoration:none;}
+.snav .back{font-size:.85rem;color:#666;text-decoration:none;transition:color .2s;}
+.snav .back:hover{color:#fff;}
+
+.smain{flex:1;display:flex;justify-content:center;padding:60px 20px 80px;}
+.scard{width:100%;max-width:620px;}
+
+/* Check animation */
+.check-wrap{text-align:center;margin-bottom:36px;}
+.check-circle{
+  width:84px;height:84px;border-radius:50%;
+  background:#0a1f0a;border:2px solid #1d5c1d;
+  display:inline-flex;align-items:center;justify-content:center;
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+  margin-bottom:20px;
+}
+.check-circle svg{
+  stroke-dasharray:40;stroke-dashoffset:40;
+  animation:drawCheck .4s .35s ease forwards;
+}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes drawCheck{to{stroke-dashoffset:0}}
+
+.check-wrap h1{font-size:2rem;font-weight:700;margin-bottom:8px;}
+.check-wrap p{color:#888;font-size:.95rem;line-height:1.6;}
+
+/* Order ID badge */
+.oid-badge{
+  background:#141414;border:1px solid #252525;border-radius:8px;
+  padding:14px 18px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin-bottom:24px;flex-wrap:wrap;
+}
+.oid-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#555;margin-bottom:4px;}
+.oid-value{font-size:.9rem;font-weight:700;color:#fff;font-family:monospace;letter-spacing:.04em;}
+.copy-btn{
+  background:#1e1e1e;border:1px solid #2a2a2a;color:#aaa;
+  padding:7px 14px;border-radius:5px;font-size:.78rem;cursor:pointer;
+  white-space:nowrap;transition:all .2s;font-family:inherit;
+}
+.copy-btn:hover{background:#252525;color:#fff;}
+.copy-btn.copied{background:#0a1f0a;border-color:#1d5c1d;color:#4ade80;}
+
+/* Email notice */
+.email-note{
+  background:#0a1a0a;border:1px solid #1a3a1a;border-radius:8px;
+  padding:13px 16px;font-size:.85rem;color:#5da85d;
+  margin-bottom:20px;display:flex;gap:10px;align-items:flex-start;line-height:1.5;
+}
+
+/* Section boxes */
+.sbox{background:#141414;border:1px solid #1e1e1e;border-radius:10px;padding:20px;margin-bottom:16px;}
+.sbox h3{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#444;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #1e1e1e;}
+
+/* Items */
+.oitem{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #1e1e1e;}
+.oitem:last-child{border-bottom:none;}
+.oitem img{width:50px;height:50px;object-fit:cover;border-radius:5px;background:#222;flex-shrink:0;}
+.oitem-info{flex:1;min-width:0;}
+.oitem-name{font-size:.88rem;font-weight:600;}
+.oitem-meta{font-size:.76rem;color:#666;margin-top:2px;}
+.oitem-price{font-size:.88rem;font-weight:700;white-space:nowrap;}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:4px;border-top:1px solid #1e1e1e;}
+.total-row .tl{font-size:.82rem;color:#666;}
+.total-row .ta{font-size:1.2rem;font-weight:700;}
+
+/* Info grid */
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:480px){.igrid{grid-template-columns:1fr;}}
+.igrid-item .il{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#444;margin-bottom:4px;}
+.igrid-item .iv{font-size:.88rem;color:#ccc;word-break:break-word;line-height:1.5;}
+.igrid-item.full{grid-column:1/-1;}
+
+/* CTAs */
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;}
+.btn-p{flex:1;min-width:150px;padding:14px 20px;background:#fff;color:#000;border:none;border-radius:7px;font-size:.95rem;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:inline-block;transition:background .2s;font-family:inherit;}
+.btn-p:hover{background:#e5e5e5;}
+.btn-s{flex:1;min-width:150px;padding:14px 20px;background:transparent;color:#fff;border:1px solid #2a2a2a;border-radius:7px;font-size:.95rem;font-weight:600;text-align:center;text-decoration:none;display:inline-block;transition:all .2s;font-family:inherit;}
+.btn-s:hover{background:#111;border-color:#444;}
+
+.no-order{text-align:center;padding:60px 20px;}
+.no-order h2{font-size:1.3rem;margin-bottom:12px;}
+.no-order p{color:#666;font-size:.9rem;margin-bottom:24px;}
+</style>
+</head>
+<body>
+
+<nav class="snav">
+  <a href="index.html" class="brand">coep Merch</a>
+  <a href="shop.html" class="back">← Continue Shopping</a>
+</nav>
+
+<main class="smain">
+  <div class="scard" id="success-content"></div>
+</main>
+
+<script>
+(function() {
+  var container = document.getElementById('success-content');
+  var urlParams = new URLSearchParams(window.location.search);
+  var urlOid    = urlParams.get('oid') || '';
+
+  var order = null;
+  try { order = JSON.parse(localStorage.getItem('coep_last_order')); } catch(e) {}
+
+  if (!order && !urlOid) {
+    container.innerHTML =
+      '<div class="no-order">' +
+        '<div style="font-size:3rem;margin-bottom:16px">🛍️</div>' +
+        '<h2>No order found</h2>' +
+        '<p>Looks like you haven\'t placed an order yet.</p>' +
+        '<a href="shop.html" class="btn-p" style="display:inline-block;max-width:220px;">Go to Shop</a>' +
+      '</div>';
+    return;
+  }
+
+  if (!order) order = { order_id: urlOid, name:'', email:'', phone:'', address:'', items:[], total:0 };
+
+  var oid       = order.order_id || urlOid || 'N/A';
+  var orderTime = order.timestamp
+    ? new Date(order.timestamp).toLocaleString('en-IN', {dateStyle:'medium', timeStyle:'short'})
+    : new Date().toLocaleString('en-IN', {dateStyle:'medium', timeStyle:'short'});
+
+  var itemsHtml = '';
+  if (order.items && order.items.length) {
+    itemsHtml = order.items.map(function(item) {
+      return '<div class="oitem">' +
+        '<img src="' + (item.img||'') + '" alt="' + item.name + '" onerror="this.style.background=\'#222\'">' +
+        '<div class="oitem-info">' +
+          '<div class="oitem-name">' + item.name + '</div>' +
+          '<div class="oitem-meta">Size: ' + item.size + ' &nbsp;·&nbsp; Qty: ' + item.qty + '</div>' +
+        '</div>' +
+        '<div class="oitem-price">₹' + (item.price * item.qty).toLocaleString('en-IN') + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  var emailNote = order.email
+    ? '<div class="email-note"><span>📧</span><span>A confirmation email has been sent to <strong>' + order.email + '</strong>. Keep your Order ID for any queries.</span></div>'
+    : '';
+
+  container.innerHTML =
+    '<div class="check-wrap">' +
+      '<div class="check-circle">' +
+        '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+          '<polyline points="20 6 9 17 4 12"></polyline>' +
+        '</svg>' +
+      '</div>' +
+      '<h1>Order Confirmed! 🎉</h1>' +
+      '<p>We\'ve received your order and sent a confirmation to your email.<br>We\'ll reach out with delivery updates soon.</p>' +
+    '</div>' +
+
+    '<div class="oid-badge">' +
+      '<div>' +
+        '<div class="oid-label">Order ID</div>' +
+        '<div class="oid-value" id="oid-display">' + oid + '</div>' +
+      '</div>' +
+      '<button class="copy-btn" onclick="copyOid()">Copy</button>' +
+    '</div>' +
+
+    emailNote +
+
+    (itemsHtml ?
+      '<div class="sbox">' +
+        '<h3>Items Ordered</h3>' +
+        itemsHtml +
+        (order.total ?
+          '<div class="total-row"><span class="tl">Total</span><span class="ta">₹' + order.total.toLocaleString('en-IN') + '</span></div>'
+        : '') +
+      '</div>'
+    : '') +
+
+    (order.name || order.email || order.phone || order.address ?
+      '<div class="sbox">' +
+        '<h3>Delivery Details</h3>' +
+        '<div class="igrid">' +
+          (order.name  ? '<div class="igrid-item"><div class="il">Name</div><div class="iv">'  + order.name  + '</div></div>' : '') +
+          (order.phone ? '<div class="igrid-item"><div class="il">Phone</div><div class="iv">' + order.phone + '</div></div>' : '') +
+          (order.email ? '<div class="igrid-item"><div class="il">Email</div><div class="iv">' + order.email + '</div></div>' : '') +
+          '<div class="igrid-item"><div class="il">Ordered On</div><div class="iv">' + orderTime + '</div></div>' +
+          (order.address ? '<div class="igrid-item full"><div class="il">Shipping Address</div><div class="iv">' + order.address + '</div></div>' : '') +
+        '</div>' +
+      '</div>'
+    : '') +
+
+    '<div class="cta-row">' +
+      '<a href="shop.html" class="btn-p">Continue Shopping</a>' +
+      '<a href="index.html" class="btn-s">Back to Home</a>' +
+    '</div>';
+})();
+
+function copyOid() {
+  var oid = document.getElementById('oid-display').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(oid).then(function() {
+      var btn = document.querySelector('.copy-btn');
+      var orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function(){ btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+}
+</script>
+</body>
+</html>

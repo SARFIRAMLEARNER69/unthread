@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Shop - UniThread</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.gstatic.com" rel="preconnect" crossorigin/>
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+<script>WebFont.load({google:{families:["Instrument Sans:regular,500,600,700","Anton:regular"]}});</script>
+<link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0d0d;color:#fff;font-family:'Instrument Sans',sans-serif;min-height:100vh;}
+
+/* ── NAVBAR ── */
+.nav{position:sticky;top:0;z-index:100;background:#0d0d0d;border-bottom:1px solid #1a1a1a;padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;}
+.nav-brand{font-family:'Anton',sans-serif;font-size:1.4rem;letter-spacing:.05em;color:#fff;text-decoration:none;}
+.nav-links{display:flex;gap:28px;list-style:none;}
+.nav-links a{color:#aaa;text-decoration:none;font-size:.9rem;transition:color .2s;}
+.nav-links a:hover,.nav-links a.active{color:#fff;}
+.nav-right{display:flex;align-items:center;gap:16px;}
+.cart-btn{background:none;border:1px solid #2a2a2a;color:#fff;cursor:pointer;position:relative;display:flex;align-items:center;gap:6px;font-size:.9rem;font-family:inherit;padding:8px 14px;border-radius:6px;transition:border-color .2s;}
+.cart-btn:hover{border-color:#555;}
+.cart-count{background:#fff;color:#000;border-radius:50%;width:18px;height:18px;font-size:.7rem;font-weight:700;display:none;align-items:center;justify-content:center;}
+.cart-count.show{display:flex;}
+
+/* ── SHOP GRID ── */
+.shop-page{padding:60px 40px 100px;}
+.shop-header{margin-bottom:48px;}
+.shop-header h1{font-family:'Anton',sans-serif;font-size:3.5rem;letter-spacing:.02em;
+  opacity:0;transform:translateY(30px);animation:fadeUp .6s ease forwards;}
+.shop-header p{color:#666;margin-top:8px;font-size:.95rem;
+  opacity:0;transform:translateY(20px);animation:fadeUp .6s .15s ease forwards;}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0);}}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px;max-width:1200px;}
+
+/* ── PRODUCT CARD ── */
+.product-card{background:#111;border:1px solid #1e1e1e;border-radius:10px;overflow:hidden;
+  transition:transform .25s,border-color .25s,box-shadow .25s;
+  opacity:0;transform:translateY(40px);animation:fadeUp .5s ease forwards;}
+.product-card:hover{transform:translateY(-6px);border-color:#333;box-shadow:0 16px 40px rgba(0,0,0,.5);}
+.product-img{aspect-ratio:3/4;overflow:hidden;background:#1a1a1a;display:flex;align-items:center;justify-content:center;}
+.product-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.product-card:hover .product-img img{transform:scale(1.06);}
+.product-img .placeholder{font-size:5rem;}
+.product-info{padding:16px 18px 20px;}
+.product-name{font-weight:700;font-size:.95rem;margin-bottom:4px;}
+.product-price{color:#888;font-size:.88rem;margin-bottom:16px;}
+.add-btn{width:100%;padding:12px;background:#fff;color:#000;border:none;font-weight:700;font-size:.85rem;
+  cursor:pointer;border-radius:6px;letter-spacing:.5px;transition:background .2s,transform .15s;
+  font-family:'Instrument Sans',sans-serif;}
+.add-btn:hover{background:#ddd;transform:scale(1.02);}
+.add-btn:active{transform:scale(.98);}
+
+/* ── CART SIDEBAR ── */
+.cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;}
+.cart-overlay.open{display:block;}
+.cart-sidebar{position:fixed;top:0;right:-440px;width:420px;max-width:100vw;height:100vh;
+  background:#111;z-index:201;display:flex;flex-direction:column;
+  transition:right .35s cubic-bezier(.4,0,.2,1);border-left:1px solid #1e1e1e;}
+.cart-sidebar.open{right:0;}
+.cart-head{display:flex;justify-content:space-between;align-items:center;padding:22px 24px;border-bottom:1px solid #1e1e1e;}
+.cart-head h2{font-size:1.1rem;font-weight:700;}
+.cart-close{background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;line-height:1;transition:opacity .2s;}
+.cart-close:hover{opacity:.6;}
+.cart-body{flex:1;overflow-y:auto;padding:16px 24px;}
+.cart-empty{text-align:center;color:#555;padding:60px 0;font-size:.9rem;}
+.cart-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #1a1a1a;align-items:center;
+  animation:fadeUp .2s ease;}
+.cart-item-img{width:64px;height:64px;object-fit:cover;border-radius:6px;background:#1a1a1a;flex-shrink:0;}
+.cart-item-info{flex:1;min-width:0;}
+.cart-item-name{font-weight:600;font-size:.88rem;margin-bottom:2px;}
+.cart-item-meta{font-size:.76rem;color:#666;margin-bottom:8px;}
+.cart-item-price{font-weight:700;font-size:.88rem;}
+.qty-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.qty-btn{width:26px;height:26px;background:#1e1e1e;border:1px solid #2a2a2a;color:#fff;
+  border-radius:4px;cursor:pointer;font-size:.9rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.qty-btn:hover{background:#2a2a2a;}
+.qty-num{font-size:.88rem;font-weight:600;min-width:18px;text-align:center;}
+.remove-btn{margin-left:auto;background:none;border:none;color:#444;cursor:pointer;font-size:1rem;transition:color .15s;flex-shrink:0;}
+.remove-btn:hover{color:#e00;}
+.cart-foot{padding:20px 24px 28px;border-top:1px solid #1e1e1e;}
+.cart-total-row{display:flex;justify-content:space-between;font-weight:700;font-size:1.05rem;margin-bottom:16px;}
+.checkout-btn{width:100%;padding:15px;background:#fff;color:#000;border:none;font-size:.95rem;font-weight:700;
+  cursor:pointer;border-radius:6px;letter-spacing:.5px;transition:background .2s;
+  font-family:'Instrument Sans',sans-serif;}
+.checkout-btn:hover{background:#ddd;}
+.checkout-btn:disabled{background:#2a2a2a;color:#555;cursor:not-allowed;}
+
+/* ── SIZE MODAL ── */
+.size-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;
+  align-items:center;justify-content:center;}
+.size-overlay.open{display:flex;}
+.size-modal{background:#111;border:1px solid #222;border-radius:12px;padding:32px;width:340px;max-width:90vw;
+  animation:modalPop .2s ease;}
+@keyframes modalPop{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+.size-modal h3{font-size:1.1rem;font-weight:700;margin-bottom:4px;}
+.size-modal p{color:#666;font-size:.83rem;margin-bottom:22px;}
+.size-options{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;}
+.size-opt{padding:8px 20px;border:1.5px solid #2a2a2a;border-radius:5px;cursor:pointer;
+  font-size:.88rem;font-weight:600;background:transparent;color:#fff;
+  transition:all .15s;font-family:'Instrument Sans',sans-serif;}
+.size-opt:hover{border-color:#888;}
+.size-opt.selected{border-color:#fff;background:#fff;color:#000;}
+.size-confirm{width:100%;padding:13px;background:#fff;color:#000;border:none;font-weight:700;
+  font-size:.9rem;cursor:pointer;border-radius:6px;font-family:'Instrument Sans',sans-serif;transition:background .2s;}
+.size-confirm:hover{background:#ddd;}
+.size-cancel{width:100%;padding:10px;background:transparent;color:#555;border:none;
+  font-size:.85rem;cursor:pointer;margin-top:10px;font-family:'Instrument Sans',sans-serif;transition:color .2s;}
+.size-cancel:hover{color:#fff;}
+
+/* ── FOOTER ── */
+.footer{background:#0a0a0a;border-top:1px solid #1a1a1a;padding:40px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.footer-brand{font-family:'Anton',sans-serif;font-size:1.2rem;color:#fff;text-decoration:none;}
+.footer-links{display:flex;gap:24px;}
+.footer-links a{color:#555;text-decoration:none;font-size:.85rem;transition:color .2s;}
+.footer-links a:hover{color:#fff;}
+.footer-copy{color:#333;font-size:.8rem;}
+
+@media(max-width:600px){
+  .nav{padding:0 20px;}
+  .nav-links{display:none;}
+  .shop-page{padding:40px 20px 80px;}
+  .shop-header h1{font-size:2.5rem;}
+  .cart-sidebar{width:100vw;}
+  .footer{flex-direction:column;text-align:center;padding:30px 20px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="nav">
+  <a href="index.html" class="nav-brand">UniThread</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="shop.html" class="active">Shop</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="cart-btn" id="cart-btn" onclick="openCart()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      Cart
+      <span class="cart-count" id="cart-count">0</span>
+    </button>
+  </div>
+</nav>
+
+<!-- SHOP -->
+
+
+<!-- CART SIDEBAR -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-head">
+    <h2>Your Cart</h2>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-body">
+    <div class="cart-empty">Your cart is empty</div>
+  </div>
+  <div class="cart-foot">
+    <div class="cart-total-row"><span>Total</span><span id="cart-total">₹0</span></div>
+    <button class="checkout-btn" id="checkout-btn" onclick="goCheckout()">Proceed to Checkout</button>
+  </div>
+</div>
+
+<!-- SIZE PICKER -->
+<div class="size-overlay" id="size-overlay">
+  <div class="size-modal">
+    <h3 id="size-product-name">Select Size</h3>
+    <p>Choose your size before adding to cart</p>
+    <div class="size-options" id="size-options"></div>
+    <button class="size-confirm" onclick="confirmSize()">Add to Cart</button>
+    <button class="size-cancel" onclick="closeSizePicker()">Cancel</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+
+
+<script>
+// ── PRODUCTS ──
+var PRODUCTS = [
+  { id:'jacket',  name:'COEP Classic Jacket', price:899, img:'images/rectangle-2039327-p-500.png',        emoji:'🧥', sizes:['S','M','L','XL','XXL'] },
+  { id:'hoodie',  name:'COEP Hoodie',          price:649, img:'images/rectangle-2039326-20-1-p-500.png',  emoji:'👕', sizes:['S','M','L','XL','XXL'] },
+  { id:'tshirt',  name:'COEP T-Shirt',         price:349, img:'images/rectangle-2039325-p-500.webp',      emoji:'👕', sizes:['S','M','L','XL','XXL'] },
+  { id:'pants',   name:'COEP Track Pants',      price:499, img:'images/rectangle-2039327-20-2-.png',       emoji:'👖', sizes:['S','M','L','XL','XXL'] },
+  { id:'cap',     name:'COEP Cap',              price:249, img:'images/rectangle-2039327-20-1-p-500.png',  emoji:'🧢', sizes:['Free Size'] },
+  { id:'sweater', name:'COEP Sweater',          price:599, img:'images/rectangle-2039327-20-3-.png',       emoji:'🧶', sizes:['S','M','L','XL','XXL'] },
+];
+
+// ── CART STATE (module pattern to avoid re-assignment bugs) ──
+var CartStore = (function() {
+  var _items = [];
+  var STORAGE_KEY = 'coep_cart';
+
+  function _load() {
+    try {
+      var saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) _items = JSON.parse(saved) || [];
+    } catch(e) { _items = []; }
+  }
+
+  function _save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(_items)); } catch(e) {}
+  }
+
+  function getItems() { return _items; }
+
+  function add(productId, size) {
+    var p = PRODUCTS.find(function(x){ return x.id === productId; });
+    if (!p) return;
+    var key = productId + '_' + size;
+    var existing = _items.find(function(i){ return i.key === key; });
+    if (existing) {
+      existing.qty++;
+    } else {
+      _items.push({ key:key, productId:productId, name:p.name, size:size, price:p.price, img:p.img, qty:1 });
+    }
+    _save();
+  }
+
+  function changeQty(key, delta) {
+    var idx = -1;
+    for (var i = 0; i < _items.length; i++) {
+      if (_items[i].key === key) { idx = i; break; }
+    }
+    if (idx === -1) return;
+    _items[idx].qty += delta;
+    if (_items[idx].qty <= 0) _items.splice(idx, 1);
+    _save();
+  }
+
+  function remove(key) {
+    for (var i = _items.length - 1; i >= 0; i--) {
+      if (_items[i].key === key) { _items.splice(i, 1); break; }
+    }
+    _save();
+  }
+
+  function getTotal() {
+    return _items.reduce(function(s, i){ return s + i.price * i.qty; }, 0);
+  }
+
+  function getCount() {
+    return _items.reduce(function(s, i){ return s + i.qty; }, 0);
+  }
+
+  _load();
+  return { getItems:getItems, add:add, changeQty:changeQty, remove:remove, getTotal:getTotal, getCount:getCount };
+})();
+
+// ── BADGE ──
+function updateBadge() {
+  var count = CartStore.getCount();
+  var badge = document.getElementById('cart-count');
+  if (!badge) return;
+  badge.textContent = count;
+  badge.classList.toggle('show', count > 0);
+}
+
+// ── CART UI ──
+function openCart() {
+  document.getElementById('cart-sidebar').classList.add('open');
+  document.getElementById('cart-overlay').classList.add('open');
+  renderCart();
+}
+function closeCart() {
+  document.getElementById('cart-sidebar').classList.remove('open');
+  document.getElementById('cart-overlay').classList.remove('open');
+}
+
+function renderCart() {
+  var body = document.getElementById('cart-body');
+  var totalEl = document.getElementById('cart-total');
+  var checkoutBtn = document.getElementById('checkout-btn');
+  var items = CartStore.getItems();
+
+  if (!items.length) {
+    body.innerHTML = '<div class="cart-empty">Your cart is empty</div>';
+    totalEl.textContent = '₹0';
+    checkoutBtn.disabled = true;
+    return;
+  }
+
+  checkoutBtn.disabled = false;
+  totalEl.textContent = '₹' + CartStore.getTotal().toLocaleString('en-IN');
+  body.innerHTML = '';
+
+  items.forEach(function(item) {
+    var row = document.createElement('div');
+    row.className = 'cart-item';
+
+    var img = document.createElement('img');
+    img.className = 'cart-item-img';
+    img.src = item.img;
+    img.alt = item.name;
+    img.onerror = function(){ this.style.background='#1a1a1a'; this.style.display='block'; };
+
+    var info = document.createElement('div');
+    info.className = 'cart-item-info';
+    info.innerHTML =
+      '<div class="cart-item-name">' + escHtml(item.name) + '</div>' +
+      '<div class="cart-item-meta">Size: ' + escHtml(item.size) + '</div>' +
+      '<div class="cart-item-price">₹' + (item.price * item.qty).toLocaleString('en-IN') + '</div>' +
+      '<div class="qty-row">' +
+        '<button class="qty-btn" data-key="' + escHtml(item.key) + '" data-delta="-1">−</button>' +
+        '<span class="qty-num">' + item.qty + '</span>' +
+        '<button class="qty-btn" data-key="' + escHtml(item.key) + '" data-delta="1">+</button>' +
+      '</div>';
+
+    var del = document.createElement('button');
+    del.className = 'remove-btn';
+    del.title = 'Remove';
+    del.innerHTML = '✕';
+    (function(k){ del.onclick = function(){ CartStore.remove(k); updateBadge(); renderCart(); }; })(item.key);
+
+    row.appendChild(img);
+    row.appendChild(info);
+    row.appendChild(del);
+    body.appendChild(row);
+  });
+
+  // Qty button events
+  body.querySelectorAll('.qty-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      var key = this.getAttribute('data-key');
+      var delta = parseInt(this.getAttribute('data-delta'), 10);
+      CartStore.changeQty(key, delta);
+      updateBadge();
+      renderCart();
+    };
+  });
+}
+
+function goCheckout() {
+  if (!CartStore.getCount()) { alert('Your cart is empty!'); return; }
+  window.location.href = 'checkout.html';
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── SIZE PICKER ──
+var _pendingId = null;
+
+function openSizePicker(productId) {
+  var p = PRODUCTS.find(function(x){ return x.id === productId; });
+  if (!p) return;
+  _pendingId = productId;
+  document.getElementById('size-product-name').textContent = p.name;
+  var opts = document.getElementById('size-options');
+  opts.innerHTML = '';
+  p.sizes.forEach(function(s) {
+    var btn = document.createElement('button');
+    btn.className = 'size-opt';
+    btn.textContent = s;
+    btn.onclick = function() {
+      opts.querySelectorAll('.size-opt').forEach(function(b){ b.classList.remove('selected'); });
+      btn.classList.add('selected');
+    };
+    opts.appendChild(btn);
+  });
+  document.getElementById('size-overlay').classList.add('open');
+}
+
+function confirmSize() {
+  var selected = document.querySelector('#size-options .size-opt.selected');
+  if (!selected) { alert('Please select a size'); return; }
+  var size = selected.textContent.trim();
+  var pid = _pendingId;
+  closeSizePicker();
+  CartStore.add(pid, size);
+  updateBadge();
+  openCart();
+}
+
+function closeSizePicker() {
+  document.getElementById('size-overlay').classList.remove('open');
+  _pendingId = null;
+}
+
+// Close size modal on overlay click
+document.getElementById('size-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSizePicker();
+});
+
+// ── RENDER PRODUCTS ──
+function renderProducts() {
+  var grid = document.getElementById('product-grid');
+  if (!grid) return;
+  PRODUCTS.forEach(function(p, idx) {
+    var card = document.createElement('div');
+    card.className = 'product-card';
+    card.style.animationDelay = (idx * 0.08) + 's';
+
+    var imgDiv = document.createElement('div');
+    imgDiv.className = 'product-img';
+    var img = document.createElement('img');
+    img.src = p.img;
+    img.alt = p.name;
+    img.loading = 'lazy';
+    img.onerror = function() {
+      imgDiv.innerHTML = '<div class="placeholder">' + p.emoji + '</div>';
+    };
+    imgDiv.appendChild(img);
+
+    var info = document.createElement('div');
+    info.className = 'product-info';
+
+    var nameEl = document.createElement('div');
+    nameEl.className = 'product-name';
+    nameEl.textContent = p.name;
+
+    var priceEl = document.createElement('div');
+    priceEl.className = 'product-price';
+    priceEl.textContent = '₹' + p.price.toLocaleString('en-IN');
+
+    var btn = document.createElement('button');
+    btn.className = 'add-btn';
+    btn.textContent = 'Add to Cart';
+    (function(pid){ btn.onclick = function(){ openSizePicker(pid); }; })(p.id);
+
+    info.appendChild(nameEl);
+    info.appendChild(priceEl);
+    info.appendChild(btn);
+    card.appendChild(imgDiv);
+    card.appendChild(info);
+    grid.appendChild(card);
+  });
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function() {
+  renderProducts();
+  updateBadge();
+});
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Shop - UniThread</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.gstatic.com" rel="preconnect" crossorigin/>
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+<script>WebFont.load({google:{families:["Instrument Sans:regular,500,600,700","Anton:regular"]}});</script>
+<link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0d0d;color:#fff;font-family:'Instrument Sans',sans-serif;min-height:100vh;}
+
+/* ── NAVBAR ── */
+.nav{position:sticky;top:0;z-index:100;background:#0d0d0d;border-bottom:1px solid #1a1a1a;padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;}
+.nav-brand{font-family:'Anton',sans-serif;font-size:1.4rem;letter-spacing:.05em;color:#fff;text-decoration:none;}
+.nav-links{display:flex;gap:28px;list-style:none;}
+.nav-links a{color:#aaa;text-decoration:none;font-size:.9rem;transition:color .2s;}
+.nav-links a:hover,.nav-links a.active{color:#fff;}
+.nav-right{display:flex;align-items:center;gap:16px;}
+.cart-btn{background:none;border:1px solid #2a2a2a;color:#fff;cursor:pointer;position:relative;display:flex;align-items:center;gap:6px;font-size:.9rem;font-family:inherit;padding:8px 14px;border-radius:6px;transition:border-color .2s;}
+.cart-btn:hover{border-color:#555;}
+.cart-count{background:#fff;color:#000;border-radius:50%;width:18px;height:18px;font-size:.7rem;font-weight:700;display:none;align-items:center;justify-content:center;}
+.cart-count.show{display:flex;}
+
+/* ── SHOP GRID ── */
+.shop-page{padding:60px 40px 100px;}
+.shop-header{margin-bottom:48px;}
+.shop-header h1{font-family:'Anton',sans-serif;font-size:3.5rem;letter-spacing:.02em;
+  opacity:0;transform:translateY(30px);animation:fadeUp .6s ease forwards;}
+.shop-header p{color:#666;margin-top:8px;font-size:.95rem;
+  opacity:0;transform:translateY(20px);animation:fadeUp .6s .15s ease forwards;}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0);}}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px;max-width:1200px;}
+
+/* ── PRODUCT CARD ── */
+.product-card{background:#111;border:1px solid #1e1e1e;border-radius:10px;overflow:hidden;
+  transition:transform .25s,border-color .25s,box-shadow .25s;
+  opacity:0;transform:translateY(40px);animation:fadeUp .5s ease forwards;}
+.product-card:hover{transform:translateY(-6px);border-color:#333;box-shadow:0 16px 40px rgba(0,0,0,.5);}
+.product-img{aspect-ratio:3/4;overflow:hidden;background:#1a1a1a;display:flex;align-items:center;justify-content:center;}
+.product-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.product-card:hover .product-img img{transform:scale(1.06);}
+.product-img .placeholder{font-size:5rem;}
+.product-info{padding:16px 18px 20px;}
+.product-name{font-weight:700;font-size:.95rem;margin-bottom:4px;}
+.product-price{color:#888;font-size:.88rem;margin-bottom:16px;}
+.add-btn{width:100%;padding:12px;background:#fff;color:#000;border:none;font-weight:700;font-size:.85rem;
+  cursor:pointer;border-radius:6px;letter-spacing:.5px;transition:background .2s,transform .15s;
+  font-family:'Instrument Sans',sans-serif;}
+.add-btn:hover{background:#ddd;transform:scale(1.02);}
+.add-btn:active{transform:scale(.98);}
+
+/* ── CART SIDEBAR ── */
+.cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;}
+.cart-overlay.open{display:block;}
+.cart-sidebar{position:fixed;top:0;right:-440px;width:420px;max-width:100vw;height:100vh;
+  background:#111;z-index:201;display:flex;flex-direction:column;
+  transition:right .35s cubic-bezier(.4,0,.2,1);border-left:1px solid #1e1e1e;}
+.cart-sidebar.open{right:0;}
+.cart-head{display:flex;justify-content:space-between;align-items:center;padding:22px 24px;border-bottom:1px solid #1e1e1e;}
+.cart-head h2{font-size:1.1rem;font-weight:700;}
+.cart-close{background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;line-height:1;transition:opacity .2s;}
+.cart-close:hover{opacity:.6;}
+.cart-body{flex:1;overflow-y:auto;padding:16px 24px;}
+.cart-empty{text-align:center;color:#555;padding:60px 0;font-size:.9rem;}
+.cart-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #1a1a1a;align-items:center;
+  animation:fadeUp .2s ease;}
+.cart-item-img{width:64px;height:64px;object-fit:cover;border-radius:6px;background:#1a1a1a;flex-shrink:0;}
+.cart-item-info{flex:1;min-width:0;}
+.cart-item-name{font-weight:600;font-size:.88rem;margin-bottom:2px;}
+.cart-item-meta{font-size:.76rem;color:#666;margin-bottom:8px;}
+.cart-item-price{font-weight:700;font-size:.88rem;}
+.qty-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.qty-btn{width:26px;height:26px;background:#1e1e1e;border:1px solid #2a2a2a;color:#fff;
+  border-radius:4px;cursor:pointer;font-size:.9rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.qty-btn:hover{background:#2a2a2a;}
+.qty-num{font-size:.88rem;font-weight:600;min-width:18px;text-align:center;}
+.remove-btn{margin-left:auto;background:none;border:none;color:#444;cursor:pointer;font-size:1rem;transition:color .15s;flex-shrink:0;}
+.remove-btn:hover{color:#e00;}
+.cart-foot{padding:20px 24px 28px;border-top:1px solid #1e1e1e;}
+.cart-total-row{display:flex;justify-content:space-between;font-weight:700;font-size:1.05rem;margin-bottom:16px;}
+.checkout-btn{width:100%;padding:15px;background:#fff;color:#000;border:none;font-size:.95rem;font-weight:700;
+  cursor:pointer;border-radius:6px;letter-spacing:.5px;transition:background .2s;
+  font-family:'Instrument Sans',sans-serif;}
+.checkout-btn:hover{background:#ddd;}
+.checkout-btn:disabled{background:#2a2a2a;color:#555;cursor:not-allowed;}
+
+/* ── SIZE MODAL ── */
+.size-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;
+  align-items:center;justify-content:center;}
+.size-overlay.open{display:flex;}
+.size-modal{background:#111;border:1px solid #222;border-radius:12px;padding:32px;width:340px;max-width:90vw;
+  animation:modalPop .2s ease;}
+@keyframes modalPop{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+.size-modal h3{font-size:1.1rem;font-weight:700;margin-bottom:4px;}
+.size-modal p{color:#666;font-size:.83rem;margin-bottom:22px;}
+.size-options{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;}
+.size-opt{padding:8px 20px;border:1.5px solid #2a2a2a;border-radius:5px;cursor:pointer;
+  font-size:.88rem;font-weight:600;background:transparent;color:#fff;
+  transition:all .15s;font-family:'Instrument Sans',sans-serif;}
+.size-opt:hover{border-color:#888;}
+.size-opt.selected{border-color:#fff;background:#fff;color:#000;}
+.size-confirm{width:100%;padding:13px;background:#fff;color:#000;border:none;font-weight:700;
+  font-size:.9rem;cursor:pointer;border-radius:6px;font-family:'Instrument Sans',sans-serif;transition:background .2s;}
+.size-confirm:hover{background:#ddd;}
+.size-cancel{width:100%;padding:10px;background:transparent;color:#555;border:none;
+  font-size:.85rem;cursor:pointer;margin-top:10px;font-family:'Instrument Sans',sans-serif;transition:color .2s;}
+.size-cancel:hover{color:#fff;}
+
+/* ── FOOTER ── */
+.footer{background:#0a0a0a;border-top:1px solid #1a1a1a;padding:40px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.footer-brand{font-family:'Anton',sans-serif;font-size:1.2rem;color:#fff;text-decoration:none;}
+.footer-links{display:flex;gap:24px;}
+.footer-links a{color:#555;text-decoration:none;font-size:.85rem;transition:color .2s;}
+.footer-links a:hover{color:#fff;}
+.footer-copy{color:#333;font-size:.8rem;}
+
+@media(max-width:600px){
+  .nav{padding:0 20px;}
+  .nav-links{display:none;}
+  .shop-page{padding:40px 20px 80px;}
+  .shop-header h1{font-size:2.5rem;}
+  .cart-sidebar{width:100vw;}
+  .footer{flex-direction:column;text-align:center;padding:30px 20px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+
+
+<!-- SHOP -->
+<div class="shop-page">
+  <div class="shop-header">
+    <h1>Shop</h1>
+    <p>Official COEP Technological University merchandise</p>
+  </div>
+  <div class="product-grid" id="product-grid"></div>
+</div>
+
+<!-- CART SIDEBAR -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-head">
+    <h2>Your Cart</h2>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-body">
+    <div class="cart-empty">Your cart is empty</div>
+  </div>
+  <div class="cart-foot">
+    <div class="cart-total-row"><span>Total</span><span id="cart-total">₹0</span></div>
+    <button class="checkout-btn" id="checkout-btn" onclick="goCheckout()">Proceed to Checkout</button>
+  </div>
+</div>
+
+<!-- SIZE PICKER -->
+<div class="size-overlay" id="size-overlay">
+  <div class="size-modal">
+    <h3 id="size-product-name">Select Size</h3>
+    <p>Choose your size before adding to cart</p>
+    <div class="size-options" id="size-options"></div>
+    <button class="size-confirm" onclick="confirmSize()">Add to Cart</button>
+    <button class="size-cancel" onclick="closeSizePicker()">Cancel</button>
+  </div>
+</div>
+
+
+
+<script>
+// ── PRODUCTS ──
+var PRODUCTS = [
+  { id:'jacket',  name:'COEP Classic Jacket', price:899, img:'images/rectangle-2039327-p-500.png',        emoji:'🧥', sizes:['S','M','L','XL','XXL'] },
+  { id:'hoodie',  name:'COEP Hoodie',          price:649, img:'images/rectangle-2039326-20-1-p-500.png',  emoji:'👕', sizes:['S','M','L','XL','XXL'] },
+  { id:'tshirt',  name:'COEP T-Shirt',         price:349, img:'images/rectangle-2039325-p-500.webp',      emoji:'👕', sizes:['S','M','L','XL','XXL'] },
+  { id:'pants',   name:'COEP Track Pants',      price:499, img:'images/rectangle-2039327-20-2-.png',       emoji:'👖', sizes:['S','M','L','XL','XXL'] },
+  { id:'cap',     name:'COEP Cap',              price:249, img:'images/rectangle-2039327-20-1-p-500.png',  emoji:'🧢', sizes:['Free Size'] },
+  { id:'sweater', name:'COEP Sweater',          price:599, img:'images/rectangle-2039327-20-3-.png',       emoji:'🧶', sizes:['S','M','L','XL','XXL'] },
+];
+
+// ── CART STATE (module pattern to avoid re-assignment bugs) ──
+var CartStore = (function() {
+  var _items = [];
+  var STORAGE_KEY = 'coep_cart';
+
+  function _load() {
+    try {
+      var saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) _items = JSON.parse(saved) || [];
+    } catch(e) { _items = []; }
+  }
+
+  function _save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(_items)); } catch(e) {}
+  }
+
+  function getItems() { return _items; }
+
+  function add(productId, size) {
+    var p = PRODUCTS.find(function(x){ return x.id === productId; });
+    if (!p) return;
+    var key = productId + '_' + size;
+    var existing = _items.find(function(i){ return i.key === key; });
+    if (existing) {
+      existing.qty++;
+    } else {
+      _items.push({ key:key, productId:productId, name:p.name, size:size, price:p.price, img:p.img, qty:1 });
+    }
+    _save();
+  }
+
+  function changeQty(key, delta) {
+    var idx = -1;
+    for (var i = 0; i < _items.length; i++) {
+      if (_items[i].key === key) { idx = i; break; }
+    }
+    if (idx === -1) return;
+    _items[idx].qty += delta;
+    if (_items[idx].qty <= 0) _items.splice(idx, 1);
+    _save();
+  }
+
+  function remove(key) {
+    for (var i = _items.length - 1; i >= 0; i--) {
+      if (_items[i].key === key) { _items.splice(i, 1); break; }
+    }
+    _save();
+  }
+
+  function getTotal() {
+    return _items.reduce(function(s, i){ return s + i.price * i.qty; }, 0);
+  }
+
+  function getCount() {
+    return _items.reduce(function(s, i){ return s + i.qty; }, 0);
+  }
+
+  _load();
+  return { getItems:getItems, add:add, changeQty:changeQty, remove:remove, getTotal:getTotal, getCount:getCount };
+})();
+
+// ── BADGE ──
+function updateBadge() {
+  var count = CartStore.getCount();
+  var badge = document.getElementById('cart-count');
+  if (!badge) return;
+  badge.textContent = count;
+  badge.classList.toggle('show', count > 0);
+}
+
+// ── CART UI ──
+function openCart() {
+  document.getElementById('cart-sidebar').classList.add('open');
+  document.getElementById('cart-overlay').classList.add('open');
+  renderCart();
+}
+function closeCart() {
+  document.getElementById('cart-sidebar').classList.remove('open');
+  document.getElementById('cart-overlay').classList.remove('open');
+}
+
+function renderCart() {
+  var body = document.getElementById('cart-body');
+  var totalEl = document.getElementById('cart-total');
+  var checkoutBtn = document.getElementById('checkout-btn');
+  var items = CartStore.getItems();
+
+  if (!items.length) {
+    body.innerHTML = '<div class="cart-empty">Your cart is empty</div>';
+    totalEl.textContent = '₹0';
+    checkoutBtn.disabled = true;
+    return;
+  }
+
+  checkoutBtn.disabled = false;
+  totalEl.textContent = '₹' + CartStore.getTotal().toLocaleString('en-IN');
+  body.innerHTML = '';
+
+  items.forEach(function(item) {
+    var row = document.createElement('div');
+    row.className = 'cart-item';
+
+    var img = document.createElement('img');
+    img.className = 'cart-item-img';
+    img.src = item.img;
+    img.alt = item.name;
+    img.onerror = function(){ this.style.background='#1a1a1a'; this.style.display='block'; };
+
+    var info = document.createElement('div');
+    info.className = 'cart-item-info';
+    info.innerHTML =
+      '<div class="cart-item-name">' + escHtml(item.name) + '</div>' +
+      '<div class="cart-item-meta">Size: ' + escHtml(item.size) + '</div>' +
+      '<div class="cart-item-price">₹' + (item.price * item.qty).toLocaleString('en-IN') + '</div>' +
+      '<div class="qty-row">' +
+        '<button class="qty-btn" data-key="' + escHtml(item.key) + '" data-delta="-1">−</button>' +
+        '<span class="qty-num">' + item.qty + '</span>' +
+        '<button class="qty-btn" data-key="' + escHtml(item.key) + '" data-delta="1">+</button>' +
+      '</div>';
+
+    var del = document.createElement('button');
+    del.className = 'remove-btn';
+    del.title = 'Remove';
+    del.innerHTML = '✕';
+    (function(k){ del.onclick = function(){ CartStore.remove(k); updateBadge(); renderCart(); }; })(item.key);
+
+    row.appendChild(img);
+    row.appendChild(info);
+    row.appendChild(del);
+    body.appendChild(row);
+  });
+
+  // Qty button events
+  body.querySelectorAll('.qty-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      var key = this.getAttribute('data-key');
+      var delta = parseInt(this.getAttribute('data-delta'), 10);
+      CartStore.changeQty(key, delta);
+      updateBadge();
+      renderCart();
+    };
+  });
+}
+
+function goCheckout() {
+  if (!CartStore.getCount()) { alert('Your cart is empty!'); return; }
+  window.location.href = 'checkout.html';
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── SIZE PICKER ──
+var _pendingId = null;
+
+function openSizePicker(productId) {
+  var p = PRODUCTS.find(function(x){ return x.id === productId; });
+  if (!p) return;
+  _pendingId = productId;
+  document.getElementById('size-product-name').textContent = p.name;
+  var opts = document.getElementById('size-options');
+  opts.innerHTML = '';
+  p.sizes.forEach(function(s) {
+    var btn = document.createElement('button');
+    btn.className = 'size-opt';
+    btn.textContent = s;
+    btn.onclick = function() {
+      opts.querySelectorAll('.size-opt').forEach(function(b){ b.classList.remove('selected'); });
+      btn.classList.add('selected');
+    };
+    opts.appendChild(btn);
+  });
+  document.getElementById('size-overlay').classList.add('open');
+}
+
+function confirmSize() {
+  var selected = document.querySelector('#size-options .size-opt.selected');
+  if (!selected) { alert('Please select a size'); return; }
+  var size = selected.textContent.trim();
+  var pid = _pendingId;
+  closeSizePicker();
+  CartStore.add(pid, size);
+  updateBadge();
+  openCart();
+}
+
+function closeSizePicker() {
+  document.getElementById('size-overlay').classList.remove('open');
+  _pendingId = null;
+}
+
+// Close size modal on overlay click
+document.getElementById('size-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSizePicker();
+});
+
+// ── RENDER PRODUCTS ──
+function renderProducts() {
+  var grid = document.getElementById('product-grid');
+  if (!grid) return;
+  PRODUCTS.forEach(function(p, idx) {
+    var card = document.createElement('div');
+    card.className = 'product-card';
+    card.style.animationDelay = (idx * 0.08) + 's';
+
+    var imgDiv = document.createElement('div');
+    imgDiv.className = 'product-img';
+    var img = document.createElement('img');
+    img.src = p.img;
+    img.alt = p.name;
+    img.loading = 'lazy';
+    img.onerror = function() {
+      imgDiv.innerHTML = '<div class="placeholder">' + p.emoji + '</div>';
+    };
+    imgDiv.appendChild(img);
+
+    var info = document.createElement('div');
+    info.className = 'product-info';
+
+    var nameEl = document.createElement('div');
+    nameEl.className = 'product-name';
+    nameEl.textContent = p.name;
+
+    var priceEl = document.createElement('div');
+    priceEl.className = 'product-price';
+    priceEl.textContent = '₹' + p.price.toLocaleString('en-IN');
+
+    var btn = document.createElement('button');
+    btn.className = 'add-btn';
+    btn.textContent = 'Add to Cart';
+    (function(pid){ btn.onclick = function(){ openSizePicker(pid); }; })(p.id);
+
+    info.appendChild(nameEl);
+    info.appendChild(priceEl);
+    info.appendChild(btn);
+    card.appendChild(imgDiv);
+    card.appendChild(info);
+    grid.appendChild(card);
+  });
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function() {
+  renderProducts();
+  updateBadge();
+});
+</script>
+</body>
+</html>
